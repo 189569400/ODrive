@@ -12,6 +12,7 @@ extern "C" {
 
 extern osThreadId uart_thread;
 
+void uart4_rx_cb();
 void start_uart_server(void);
 
 #ifdef __cplusplus

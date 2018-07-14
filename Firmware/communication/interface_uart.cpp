@@ -56,36 +56,51 @@ StreamBasedPacketSink uart4_packet_output(uart4_stream_output);
 BidirectionalPacketBasedChannel uart4_channel(uart4_packet_output);
 StreamToPacketSegmenter uart4_stream_input(uart4_channel);
 
+/**
+ * Callback function for when rx data is received on uart4
+ */
+void uart4_rx_cb() {
+    // Set event flag for the uart receive function
+    osSignalSet(uart_thread, 0x01);
+}
+
 static void uart_server_thread(void * ctx) {
     (void) ctx;
 
+    osEvent evt;
+
     for (;;) {
-        // Check for UART errors and restart recieve DMA transfer if required
-        if (huart4.ErrorCode != HAL_UART_ERROR_NONE) {
-            HAL_UART_AbortReceive(&huart4);
-            HAL_UART_Receive_DMA(&huart4, dma_rx_buffer, sizeof(dma_rx_buffer));
-        }
-        // Fetch the circular buffer "write pointer", where it would write next
-        uint32_t new_rcv_idx = UART_RX_BUFFER_SIZE - huart4.hdmarx->Instance->NDTR;
+        // could change timeout to 1 - 100 milliseconds, to be safe
+        // however still need to figure out the edge case for the last byte received 
+        evt = osSignalWait(0x01, osWaitForever); // block until interrupt sets the flag
+        if (evt.status == osEventSignal) { // only query dma if got an event signal
 
-        deadline_ms = timeout_to_deadline(PROTOCOL_SERVER_TIMEOUT_MS);
-        // Process bytes in one or two chunks (two in case there was a wrap)
-        if (new_rcv_idx < dma_last_rcv_idx) {
-            uart4_stream_input.process_bytes(dma_rx_buffer + dma_last_rcv_idx,
-                    UART_RX_BUFFER_SIZE - dma_last_rcv_idx, nullptr); // TODO: use process_all
-            ASCII_protocol_parse_stream(dma_rx_buffer + dma_last_rcv_idx,
-                    UART_RX_BUFFER_SIZE - dma_last_rcv_idx, uart4_stream_output);
-            dma_last_rcv_idx = 0;
-        }
-        if (new_rcv_idx > dma_last_rcv_idx) {
-            uart4_stream_input.process_bytes(dma_rx_buffer + dma_last_rcv_idx,
-                    new_rcv_idx - dma_last_rcv_idx, nullptr); // TODO: use process_all
-            ASCII_protocol_parse_stream(dma_rx_buffer + dma_last_rcv_idx,
-                    new_rcv_idx - dma_last_rcv_idx, uart4_stream_output);
-            dma_last_rcv_idx = new_rcv_idx;
-        }
+            // Check for UART errors and restart recieve DMA transfer if required
+            if (huart4.ErrorCode != HAL_UART_ERROR_NONE) {
+                HAL_UART_AbortReceive(&huart4);
+                HAL_UART_Receive_DMA(&huart4, dma_rx_buffer, sizeof(dma_rx_buffer));
+            }
+            // Fetch the circular buffer "write pointer", where it would write next
+            uint32_t new_rcv_idx = UART_RX_BUFFER_SIZE - huart4.hdmarx->Instance->NDTR;
 
-        osDelay(1);
+            deadline_ms = timeout_to_deadline(PROTOCOL_SERVER_TIMEOUT_MS);
+            // Process bytes in one or two chunks (two in case there was a wrap)
+            if (new_rcv_idx < dma_last_rcv_idx) {
+                uart4_stream_input.process_bytes(dma_rx_buffer + dma_last_rcv_idx,
+                        UART_RX_BUFFER_SIZE - dma_last_rcv_idx, nullptr); // TODO: use process_all
+                ASCII_protocol_parse_stream(dma_rx_buffer + dma_last_rcv_idx,
+                        UART_RX_BUFFER_SIZE - dma_last_rcv_idx, uart4_stream_output);
+                dma_last_rcv_idx = 0;
+            }
+            if (new_rcv_idx > dma_last_rcv_idx) {
+                uart4_stream_input.process_bytes(dma_rx_buffer + dma_last_rcv_idx,
+                        new_rcv_idx - dma_last_rcv_idx, nullptr); // TODO: use process_all
+                ASCII_protocol_parse_stream(dma_rx_buffer + dma_last_rcv_idx,
+                        new_rcv_idx - dma_last_rcv_idx, uart4_stream_output);
+                dma_last_rcv_idx = new_rcv_idx;
+            }
+        }
+        // osDelay(1);
     };
 }
 

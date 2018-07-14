@@ -48,6 +48,8 @@ void pwm_trig_adc_cb(ADC_HandleTypeDef* hadc, bool injected);
 void vbus_sense_adc_cb(ADC_HandleTypeDef* hadc, bool injected);
 void tim_update_cb(TIM_HandleTypeDef* htim);
 
+void uart4_rx_cb();
+
 extern TIM_HandleTypeDef htim1;
 extern I2C_HandleTypeDef hi2c1;
 
@@ -67,7 +69,7 @@ extern UART_HandleTypeDef huart4;
 extern TIM_HandleTypeDef htim14;
 
 /******************************************************************************/
-/*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
+/*            Cortex-M4 Processor Interruption and Exception Handlers         */
 /******************************************************************************/
 
 /**
@@ -199,6 +201,8 @@ void DMA1_Stream2_IRQHandler(void)
   /* USER CODE END DMA1_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_uart4_rx);
   /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
+
+  uart4_rx_cb(); // trigger callback function
 
   /* USER CODE END DMA1_Stream2_IRQn 1 */
 }
@@ -441,7 +445,7 @@ void EXTI4_IRQHandler(void)
 */
 void EXTI9_5_IRQHandler(void)
 {
-  // The true source of the interrupt is checked inside HAL_GPIO_EXTI_IRQHandler() 
+  // The true source of the interrupt is checked inside HAL_GPIO_EXTI_IRQHandler()
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
