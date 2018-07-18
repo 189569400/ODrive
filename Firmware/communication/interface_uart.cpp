@@ -71,7 +71,7 @@ static void uart_server_thread(void * ctx) {
 
     for (;;) {
         // could change timeout to 1 - 100 milliseconds, to be safe
-        // however still need to figure out the edge case for the last byte received 
+        // however still need to figure out the edge case for the last byte received
         evt = osSignalWait(0x01, osWaitForever); // block until interrupt sets the flag
         if (evt.status == osEventSignal) { // only query dma if got an event signal
 
@@ -108,6 +108,8 @@ void start_uart_server() {
     // DMA is set up to recieve in a circular buffer forever.
     // We dont use interrupts to fetch the data, instead we periodically read
     // data out of the circular buffer into a parse buffer, controlled by a state machine
+    __HAL_UART_ENABLE_IT(&huart4, UART_IT_IDLE);   // enable idle line interrupt
+
     HAL_UART_Receive_DMA(&huart4, dma_rx_buffer, sizeof(dma_rx_buffer));
     dma_last_rcv_idx = UART_RX_BUFFER_SIZE - huart4.hdmarx->Instance->NDTR;
 

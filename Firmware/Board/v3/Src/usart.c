@@ -126,6 +126,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_uart4_rx.Init.Mode = DMA_CIRCULAR;
     hdma_uart4_rx.Init.Priority = DMA_PRIORITY_LOW;
     hdma_uart4_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+
+    
+
     if (HAL_DMA_Init(&hdma_uart4_rx) != HAL_OK)
     {
       _Error_Handler(__FILE__, __LINE__);

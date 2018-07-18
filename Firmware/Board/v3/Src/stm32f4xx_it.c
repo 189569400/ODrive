@@ -217,7 +217,7 @@ void DMA1_Stream4_IRQHandler(void)
   /* USER CODE END DMA1_Stream4_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_uart4_tx);
   /* USER CODE BEGIN DMA1_Stream4_IRQn 1 */
-
+  // uart4_rx_cb();
   /* USER CODE END DMA1_Stream4_IRQn 1 */
 }
 
@@ -318,17 +318,21 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void)
   /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 1 */
 }
 
+osThreadId uart_thread;
 /**
 * @brief This function handles UART4 global interrupt.
 */
 void UART4_IRQHandler(void)
 {
   /* USER CODE BEGIN UART4_IRQn 0 */
+  if(huart4.Instance->SR & UART_FLAG_IDLE) {
+    huart4.Instance->SR &= ~UART_FLAG_IDLE;
+    osSignalSet(uart_thread, 0x01);
+  }
 
   /* USER CODE END UART4_IRQn 0 */
   HAL_UART_IRQHandler(&huart4);
   /* USER CODE BEGIN UART4_IRQn 1 */
-  uart4_rx_cb();
 
   /* USER CODE END UART4_IRQn 1 */
 }
