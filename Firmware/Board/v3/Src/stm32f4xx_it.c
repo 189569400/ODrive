@@ -202,7 +202,7 @@ void DMA1_Stream2_IRQHandler(void)
   HAL_DMA_IRQHandler(&hdma_uart4_rx);
   /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
 
-  uart4_rx_cb(); // trigger callback function
+  // uart4_rx_cb(); // trigger callback function
 
   /* USER CODE END DMA1_Stream2_IRQn 1 */
 }
@@ -328,6 +328,7 @@ void UART4_IRQHandler(void)
   /* USER CODE END UART4_IRQn 0 */
   HAL_UART_IRQHandler(&huart4);
   /* USER CODE BEGIN UART4_IRQn 1 */
+  uart4_rx_cb();
 
   /* USER CODE END UART4_IRQn 1 */
 }
@@ -458,7 +459,7 @@ void EXTI9_5_IRQHandler(void)
 */
 void EXTI15_10_IRQHandler(void)
 {
-  // The true source of the interrupt is checked inside HAL_GPIO_EXTI_IRQHandler() 
+  // The true source of the interrupt is checked inside HAL_GPIO_EXTI_IRQHandler()
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
