@@ -39,6 +39,7 @@
 /* USER CODE BEGIN 0 */
 #include "freertos_vars.h"
 #include <stdbool.h>
+#include "communication/interface_uart.h"
 
 typedef void (*ADC_handler_t)(ADC_HandleTypeDef* hadc, bool injected);
 void ADC_IRQ_Dispatch(ADC_HandleTypeDef* hadc, ADC_handler_t callback);
@@ -318,7 +319,7 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void)
   /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 1 */
 }
 
-osThreadId uart_thread;
+// osThreadId uart_thread;
 /**
 * @brief This function handles UART4 global interrupt.
 */
@@ -327,7 +328,9 @@ void UART4_IRQHandler(void)
   /* USER CODE BEGIN UART4_IRQn 0 */
   if(huart4.Instance->SR & UART_FLAG_IDLE) {
     huart4.Instance->SR &= ~UART_FLAG_IDLE;
-    osSignalSet(uart_thread, 0x01);
+    if(uart_thread) {
+      osSignalSet(uart_thread, 0x01);
+    }
   }
 
   /* USER CODE END UART4_IRQn 0 */
