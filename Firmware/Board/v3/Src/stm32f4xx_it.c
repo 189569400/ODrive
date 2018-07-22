@@ -327,7 +327,9 @@ void UART4_IRQHandler(void)
 {
   /* USER CODE BEGIN UART4_IRQn 0 */
   if(huart4.Instance->SR & UART_FLAG_IDLE) {
-    huart4.Instance->SR &= ~UART_FLAG_IDLE;
+    volatile uint32_t tmp;                  /* Must be volatile to prevent optimizations */
+    tmp = huart4.Instance->SR;                       /* Read status register */
+    tmp = huart4.Instance->DR;
     if(uart_thread) {
       osSignalSet(uart_thread, 0x01);
     }
